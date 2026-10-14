@@ -1,0 +1,25 @@
+# Python virtualenv & tooling caches
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Vendored upstream sources (managed via vendir.lock.yml)
+upstream/
+
+# Generated vendir manifest
+vendir.yml
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Local agent session tracking
+.gemini/
+.specstory/
+
+# Local architecture plans
+docs/plans/
