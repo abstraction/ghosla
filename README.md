@@ -8,11 +8,12 @@
   </p>
   <strong>A personal atelier to curate, test, and atomically deploy AI agent skills.</strong>
   <p>
-    <code>Python &gt;= 3.12</code> &nbsp;|&nbsp;
-    <code>uv</code> &nbsp;|&nbsp;
-    <code>vendir</code> &nbsp;|&nbsp;
-    <code>mypy --strict</code> &nbsp;|&nbsp;
-    <code>49/49 tests passing</code>
+    <a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=flat&logo=python&logoColor=white" alt="Python 3.12+"></a>
+    <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/badge/Manager-uv-DE5FE9?style=flat&logo=uv&logoColor=white" alt="uv"></a>
+    <a href="https://carvel.dev/vendir/"><img src="https://img.shields.io/badge/Sync-vendir-0052CC?style=flat" alt="vendir"></a>
+    <a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/Types-mypy%20strict-1674B1?style=flat" alt="mypy strict"></a>
+    <img src="https://img.shields.io/badge/Tests-49%20passed-2ea44f?style=flat" alt="49 passed">
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat" alt="License: MIT">
   </p>
 </div>
 

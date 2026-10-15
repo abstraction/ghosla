@@ -85,6 +85,18 @@ def adopt_skill(
     if not resolved_source.exists():
         raise FileNotFoundError(f"Source skill does not exist: {source_path}")
 
+    # If pointing directly to a file (e.g. SKILL.md), resolve to parent directory
+    # so all sibling folders (scripts/, references/, etc.) and files are copied together.
+    if resolved_source.is_file():
+        if resolved_source.name == "SKILL.md":
+            resolved_source = resolved_source.parent
+        else:
+            raise ValueError(f"Expected a skill directory or SKILL.md file, got: {source_path}")
+
+    skill_file = resolved_source / "SKILL.md"
+    if not skill_file.exists():
+        raise FileNotFoundError(f"Skill directory missing SKILL.md: {resolved_source}")
+
     name = target_name if target_name else resolved_source.name.lower().replace("_", "-")
     target_dir = target_atelier_skills / name
     if target_dir.exists():
@@ -93,9 +105,9 @@ def adopt_skill(
     shutil.copytree(resolved_source, target_dir)
 
     # Normalize SKILL.md
-    skill_file = target_dir / "SKILL.md"
-    if skill_file.exists():
-        raw_text = skill_file.read_text(encoding="utf-8", errors="replace")
+    target_skill_file = target_dir / "SKILL.md"
+    if target_skill_file.exists():
+        raw_text = target_skill_file.read_text(encoding="utf-8", errors="replace")
         fm_dict, body = parse_frontmatter(raw_text)
         fm_dict["name"] = name
         if "description" not in fm_dict:
@@ -103,6 +115,7 @@ def adopt_skill(
 
         # Re-write normalized file
         normalized_content = format_frontmatter(fm_dict) + body.lstrip()
-        skill_file.write_text(normalized_content, encoding="utf-8")
+        target_skill_file.write_text(normalized_content, encoding="utf-8")
 
     return target_dir
+

@@ -30,7 +30,7 @@ def parse_frontmatter(content: str) -> Tuple[Dict[str, Any], str]:
 def extract_skill_frontmatter(
     skill_md_path: Path,
 ) -> Tuple[Optional[SkillFrontmatter], str, Optional[str]]:
-    """Extracts and validates SkillFrontmatter from a SKILL.md file."""
+    """Extracts and validates SkillFrontmatter from a SKILL.md file with pointed errors."""
     if not skill_md_path.exists():
         return None, "", f"File does not exist: {skill_md_path}"
 
@@ -39,16 +39,35 @@ def extract_skill_frontmatter(
     except Exception as e:
         return None, "", f"Error reading {skill_md_path}: {e}"
 
-    data, body = parse_frontmatter(content)
-    if not data:
+    match = FRONTMATTER_PATTERN.match(content)
+    if not match:
+        return None, content, f"No valid YAML frontmatter found in {skill_md_path}"
+
+    yaml_text = match.group(1)
+    body = content[match.end():]
+
+    try:
+        data = yaml.safe_load(yaml_text)
+    except yaml.MarkedYAMLError as e:
+        line = (e.problem_mark.line + 2) if e.problem_mark else 1
+        col = (e.problem_mark.column + 1) if e.problem_mark else 1
+        return None, body, f"YAML syntax error at {skill_md_path}:{line}:{col}: {e.problem}"
+    except yaml.YAMLError as e:
+        return None, body, f"YAML parsing error in {skill_md_path}: {e}"
+
+    if not isinstance(data, dict):
         return None, body, f"No valid YAML frontmatter found in {skill_md_path}"
 
     try:
         fm = SkillFrontmatter(**data)
         return fm, body, None
     except ValidationError as e:
-        error_msgs = "; ".join(f"{err['loc']}: {err['msg']}" for err in e.errors())
-        return None, body, f"Frontmatter schema validation error: {error_msgs}"
+        err_items = []
+        for err in e.errors():
+            loc_tag = ".".join(str(part) for part in err["loc"])
+            err_items.append(f"{loc_tag}: {err['msg']}")
+        return None, body, f"Frontmatter schema validation error: {'; '.join(err_items)}"
+
 
 
 def format_frontmatter(metadata: Dict[str, Any]) -> str:

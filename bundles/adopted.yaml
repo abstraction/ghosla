@@ -1,0 +1,10 @@
+name: adopted
+description: External agent ecosystem tools adopted into atelier
+skills:
+  - agent-browser
+  - computer-use
+  - herdr
+  - orca-cli
+  - orchestration
+target_harnesses:
+  - antigravity

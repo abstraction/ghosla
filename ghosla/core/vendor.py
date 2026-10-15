@@ -91,10 +91,13 @@ def run_vendir_sync(
     output_vendir = workspace_root / "vendir.yml"
     compile_sources(sources_d, output_vendir)
 
-    proc = subprocess.run(
-        [vendir_bin, "sync"],
-        cwd=workspace_root,
-        capture_output=True,
-        text=True,
-    )
-    return proc.returncode, proc.stdout, proc.stderr
+    try:
+        proc = subprocess.run(
+            [vendir_bin, "sync"],
+            cwd=workspace_root,
+            capture_output=True,
+            text=True,
+        )
+        return proc.returncode, proc.stdout, proc.stderr
+    except FileNotFoundError:
+        return 127, "", f"Executable '{vendir_bin}' not found in PATH."

@@ -1,0 +1,14 @@
+name: reading-lab
+description: Knowledge extraction, Zettelkasten, e-ink integration, and Anki card formulation
+skills:
+  - anki-maker
+  - ai-postmortem
+  - doc-digest
+  - socratic-tutor
+  - archive-conversation
+  - library-organizer
+  - koreader-custom-cover
+  - koreader-markdown-ingest
+  - koreader-metadata-sync
+target_harnesses:
+  - antigravity

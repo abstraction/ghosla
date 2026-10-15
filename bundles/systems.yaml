@@ -1,0 +1,15 @@
+name: systems
+description: Systems engineering, AST indexing, architecture reviews, and language assistants
+skills:
+  - codebase-memory
+  - graphify
+  - python-coding-assistant
+  - lua-coding-assistant
+  - qml-expert
+  - arch-packager
+  - deduplicator
+  - agents-md-maker
+  - find-skills
+  - resume-session
+target_harnesses:
+  - antigravity

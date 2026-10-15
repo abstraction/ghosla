@@ -1,0 +1,206 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "2.0.0",
+  "name": "Johnny.Decimal Master Library Taxonomy",
+  "master_library_root": "60-69 Library & Literature",
+  "system_folders": {
+    "inbox": "00-09 System & Inbox/01 Intake & Inbox",
+    "duplicates": "_recycle_bin/staged_duplicates",
+    "staging": "60-69 Library & Literature/60 Meta, Staging & Ingestion"
+  },
+  "format_policy": {
+    "handling": "co_locate",
+    "supported_extensions": [".pdf", ".epub", ".mobi", ".djvu", ".cbr", ".cbz", ".azw3"]
+  },
+  "gatekeeper_exclusions": {
+    "keywords": [
+      "aadhaar", "passport", "pan card", "voter id", "driving license",
+      "invoice", "receipt", "billing", "tax return", "itr-v", "form 16",
+      "bank statement", "salary slip", "payslip", "boarding pass", "flight ticket",
+      "blood test", "lipid profile", "cbc report", "prescription"
+    ],
+    "destination": "00-09 System & Inbox/01 Intake & Inbox",
+    "reason": "Administrative, legal, personal identity, or active health tracker - excluded from master library."
+  },
+  "categories": [
+    {
+      "id": "61_COMPUTER_SCIENCE",
+      "jd_code": "61",
+      "path": "60-69 Library & Literature/61 Computer Science & Technical Systems",
+      "rules": {
+        "title_keywords": [
+          "python", "javascript", "typescript", "golang", "rust", "linux", "kernel",
+          "operating systems", "algorithms", "data structures", "leetcode", "compiler",
+          "networking", "distributed systems", "database", "sql", "git", "clean code",
+          "refactoring", "software engineering", "computer science", "system design",
+          "cybersecurity", "docker", "kubernetes", "programming", "coding interview",
+          "cracking the coding interview", "elements of programming interviews"
+        ],
+        "content_keywords": [
+          "algorithm", "data structure", "source code", "function", "class", "compiler",
+          "memory management", "concurrency", "runtime", "tcp/ip", "api design"
+        ],
+        "regex_patterns": [
+          "\\b(dsa|leetcode|posix|unix|c\\+\\+|golang|react|vue|devops)\\b"
+        ],
+        "min_score": 10
+      }
+    },
+    {
+      "id": "62_ECONOMICS_WEALTH_MARKETS",
+      "jd_code": "62",
+      "path": "60-69 Library & Literature/62 Economics, Wealth & Markets",
+      "rules": {
+        "title_keywords": [
+          "economics", "investing", "finance", "trading", "stock market", "macroeconomics",
+          "microeconomics", "wealth", "capital", "monetary policy", "central banking",
+          "portfolio", "valuation", "zerodha varsity", "technical analysis", "fundamental analysis",
+          "adam smith", "wealth of nations", "arbitrage", "derivatives", "smart money",
+          "ict mentorship", "market structure"
+        ],
+        "content_keywords": [
+          "financial market", "asset allocation", "liquidity", "inflation", "gdp",
+          "yield curve", "interest rate", "equity", "balance sheet"
+        ],
+        "regex_patterns": [
+          "\\b(vwap|candlestick|ict mentorship|order block|forex|options trading)\\b"
+        ],
+        "min_score": 10
+      }
+    },
+    {
+      "id": "63_PHYSICAL_CULTURE_HEALTH_PHYSIOLOGY",
+      "jd_code": "63",
+      "path": "60-69 Library & Literature/63 Physical Culture, Health & Physiology",
+      "rules": {
+        "title_keywords": [
+          "hypertrophy", "biomechanics", "stretching", "mobility", "strength training",
+          "exercise", "kinesiology", "anatomy", "bodybuilding", "powerlifting",
+          "nsca", "issa", "mind pump", "maps anabolic", "eric helms", "jeff nippard",
+          "daniels running formula", "back exercise", "pursuit mobility", "pursuit core",
+          "functional synergy", "human nutrition", "circle diet", "anabolic cookbook",
+          "muscle and strength pyramid", "muscle ladder", "knee ability"
+        ],
+        "content_keywords": [
+          "muscle hypertrophy", "skeletal muscle", "joint mobility", "periodization",
+          "progressive overload", "macronutrient", "caloric intake", "biomechanical"
+        ],
+        "regex_patterns": [
+          "\\b(hamstrings|shoulders|spine|calisthenics|physique|vo2 max|mobility guide)\\b"
+        ],
+        "min_score": 10
+      }
+    },
+    {
+      "id": "64_MIND_PHILOSOPHY_PERFORMANCE",
+      "jd_code": "64",
+      "path": "60-69 Library & Literature/64 Mind, Philosophy & Human Performance",
+      "rules": {
+        "title_keywords": [
+          "philosophy", "stoicism", "schopenhauer", "nietzsche", "marcus aurelius",
+          "epistemology", "ethics", "psychology", "cognition", "mental models",
+          "deep work", "getting things done", "gtd", "habits", "adhd", "focus",
+          "nonviolent communication", "rationality", "critical thinking"
+        ],
+        "content_keywords": [
+          "philosophical", "cognitive bias", "deliberate practice", "metacognition",
+          "stoic", "existentialism", "habit formation", "executive function"
+        ],
+        "regex_patterns": [
+          "\\b(stoic|parerga|cal newport|david allen|james clear)\\b"
+        ],
+        "min_score": 10
+      }
+    },
+    {
+      "id": "65_FICTION_LITERATURE",
+      "jd_code": "65",
+      "path": "60-69 Library & Literature/65 Fiction & Modern Literature",
+      "rules": {
+        "title_keywords": [
+          "classic novel", "literature", "fiction", "stories", "dostoevsky", "tolstoy",
+          "george orwell", "sci-fi", "science fiction", "fantasy novel", "anthology"
+        ],
+        "content_keywords": [
+          "chapter 1", "prologue", "epilogue", "protagonist", "characters"
+        ],
+        "regex_patterns": [
+          "\\b(novel|fiction|dramatis personae)\\b"
+        ],
+        "min_score": 10
+      }
+    },
+    {
+      "id": "66_SERIAL_FICTION_WEB_NOVELS",
+      "jd_code": "66",
+      "path": "60-69 Library & Literature/66 Serial Fiction & Web Novels",
+      "rules": {
+        "title_keywords": [
+          "chrysalis", "web novel", "webnovel", "light novel", "progression fantasy",
+          "litrpg", "xianxia", "wuxia", "cultivation", "system apocalypse", "royal road"
+        ],
+        "content_keywords": [
+          "cultivation", "dantian", "qi", "status screen", "system notification", "dao", "reincarnation"
+        ],
+        "regex_patterns": [
+          "\\b(litrpg|xianxia|wuxia|cultivator|daoist|isekai)\\b"
+        ],
+        "min_score": 10
+      }
+    },
+    {
+      "id": "67_PERIODICALS_REPORTS_WHITEPAPERS",
+      "jd_code": "67",
+      "path": "60-69 Library & Literature/67 Periodicals, Reports & Whitepapers",
+      "rules": {
+        "title_keywords": [
+          "annual report", "whitepaper", "periodical", "magazine", "business standard",
+          "the mint", "economic survey", "quarterly bulletin", "research paper"
+        ],
+        "content_keywords": [
+          "volume", "issue", "executive summary", "annual report", "quarterly"
+        ],
+        "regex_patterns": [
+          "\\b(whitepaper|periodical|quarterly review|annual report)\\b"
+        ],
+        "min_score": 10
+      }
+    },
+    {
+      "id": "68_LANGUAGE_STANDARDIZED_TESTING",
+      "jd_code": "68",
+      "path": "60-69 Library & Literature/68 Language & Standardized Testing",
+      "rules": {
+        "title_keywords": [
+          "ielts", "toefl", "vocabulary", "grammar", "cambridge ielts", "essay samples", 
+          "speaking cue cards", "barron", "dictionary", "reading answers"
+        ],
+        "content_keywords": [
+          "reading task", "writing task", "speaking test", "listening practice", "band 9", "synonyms"
+        ],
+        "regex_patterns": [
+          "\\b(ielts|toefl|cambridge ielts|makkar|vocabulary files)\\b"
+        ],
+        "min_score": 10
+      }
+    },
+    {
+      "id": "69_READING_LISTS_SUMMARIES",
+      "jd_code": "69",
+      "path": "60-69 Library & Literature/69 Reading Lists & Summaries",
+      "rules": {
+        "title_keywords": [
+          "reading list", "book summary", "book notes", "key takeaways", "synopsis",
+          "executive summary", "course syllabus", "transcript"
+        ],
+        "content_keywords": [
+          "chapter summary", "actionable insights", "key concepts", "reading log"
+        ],
+        "regex_patterns": [
+          "\\b(book summary|reading list|notes and summary)\\b"
+        ],
+        "min_score": 10
+      }
+    }
+  ]
+}

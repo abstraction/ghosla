@@ -4,11 +4,12 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, NoReturn, Optional, Set
 
 import click
 import yaml
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 
@@ -19,6 +20,7 @@ from ghosla.core.models import (
     GhoslaConfig,
     HarnessType,
     SkillBundle,
+    SkillFrontmatter,
     SkillMetadata,
     SkillSource,
 )
@@ -29,6 +31,31 @@ from ghosla.integrations.intake import adopt_skill, bridge_external_skills, scan
 from ghosla.integrations.obsidian import ObsidianLumaExporter
 
 console = Console()
+
+
+def exit_with_pointed_error(
+    message: str, location: Optional[str] = None, code: int = 1
+) -> NoReturn:
+    """Outputs a single-line pointed error message to save tokens and exits cleanly."""
+    loc_prefix = f"[{location}] " if location else ""
+    console.print(f"[bold red]Error:[/bold red] {escape(loc_prefix)}{escape(message.strip())}")
+    sys.exit(code)
+
+
+
+class PointedGroup(click.Group):
+    """Custom Click Group that captures uncaught exceptions and prints pointed errors."""
+
+    def invoke(self, ctx: click.Context) -> Any:
+        try:
+            return super().invoke(ctx)
+        except (click.ClickException, SystemExit):
+            raise
+        except Exception as exc:
+            if os.environ.get("GHOSLA_DEBUG") == "1":
+                raise
+            err_name = type(exc).__name__
+            exit_with_pointed_error(str(exc), location=err_name)
 
 
 def find_workspace_root() -> Path:
@@ -71,32 +98,44 @@ def get_catalog(workspace_root: Path, include_upstream: bool = True) -> Dict[str
     # 1. Local atelier skills
     local_skills_dir = root / "skills"
     if local_skills_dir.exists():
-        for item in sorted(local_skills_dir.iterdir(), key=lambda p: p.name):
-            if item.is_dir() and (item / "SKILL.md").exists():
-                skill_file = item / "SKILL.md"
-                fm, body, _ = extract_skill_frontmatter(skill_file)
-                name = fm.name if fm else item.name
-                content_bytes = skill_file.read_bytes()
-                content_text = content_bytes.decode("utf-8", errors="replace")
-                is_fork = bool(fm and fm.is_fork)
-                source_type = SkillSource.FORK if is_fork else SkillSource.LOCAL
-                upstream_source = fm.upstream_source if fm else None
+        for skill_file in sorted(local_skills_dir.rglob("SKILL.md")):
+            skill_dir = skill_file.parent
+            fm, body, _ = extract_skill_frontmatter(skill_file)
+            if not fm:
+                try:
+                    clean_name = "".join(
+                        c if c.isalnum() or c == "-" else "-" for c in skill_dir.name.lower()
+                    )
+                    fm = SkillFrontmatter(name=clean_name, description=f"Skill {clean_name}")
+                except Exception:
+                    continue
 
-                meta = SkillMetadata(
-                    name=name,
-                    source_type=source_type,
-                    path=item,
-                    frontmatter=fm if fm else extract_skill_frontmatter(skill_file)[0], # type: ignore
-                    byte_size=len(content_bytes),
-                    estimated_tokens=estimate_tokens(content_text),
-                    has_anti_rationalization="anti-rationalization" in content_text.lower(),
-                    reference_depth=0,
-                    upstream_repo=upstream_source,
-                    upstream_source=upstream_source,
-                )
-                catalog[name] = meta
-                if is_fork and upstream_source:
-                    catalog[f"local/{name}"] = meta
+            name = fm.name
+            content_bytes = skill_file.read_bytes()
+            content_text = content_bytes.decode("utf-8", errors="replace")
+            is_fork = bool(fm and fm.is_fork)
+            source_type = SkillSource.FORK if is_fork else SkillSource.LOCAL
+            upstream_source = fm.upstream_source if fm else None
+
+            meta = SkillMetadata(
+                name=name,
+                source_type=source_type,
+                path=skill_dir,
+                frontmatter=fm,
+                byte_size=len(content_bytes),
+                estimated_tokens=estimate_tokens(content_text),
+                has_anti_rationalization="anti-rationalization" in content_text.lower(),
+                reference_depth=0,
+                upstream_repo=upstream_source,
+                upstream_source=upstream_source,
+            )
+            catalog[name] = meta
+            rel_parts = skill_dir.relative_to(local_skills_dir).parts
+            if len(rel_parts) > 1:
+                category = rel_parts[0]
+                catalog[f"{category}/{name}"] = meta
+            if is_fork and upstream_source:
+                catalog[f"local/{name}"] = meta
 
     # 2. Upstream skills
     if include_upstream:
@@ -141,7 +180,7 @@ def get_catalog(workspace_root: Path, include_upstream: bool = True) -> Dict[str
     return catalog
 
 
-@click.group()
+@click.group(cls=PointedGroup)
 def cli() -> None:
     """Ghosla: Atelier for Agent Instructions and Skills."""
     pass
@@ -216,7 +255,13 @@ def status_cmd(as_json: bool) -> None:
         return
 
     # Visual Output
-    repos_desc = f"{len(upstream_repos)} upstream tracked ({', '.join(upstream_repos[:4])}...)"
+    if len(upstream_repos) <= 4:
+        repos_desc = f"{len(upstream_repos)} upstream tracked ({', '.join(upstream_repos)})"
+    else:
+        first_repos = ", ".join(upstream_repos[:4])
+        more_count = len(upstream_repos) - 4
+        repos_desc = f"{len(upstream_repos)} upstream tracked ({first_repos}, +{more_count} more)"
+
     panel_text = (
         f"Active Profile: [bold cyan]{cfg.active_bundle}[/bold cyan] "
         f"({active_skills_count} skills)\n"
@@ -236,13 +281,17 @@ def status_cmd(as_json: bool) -> None:
 
     console.print("\n[bold]Shadowing & Collision Warnings:[/bold]")
     if shadowing_warnings:
-        for warn in shadowing_warnings:
+        max_show = 3
+        for warn in shadowing_warnings[:max_show]:
             console.print(f"  [yellow]• {warn['message']}[/yellow]")
+        if len(shadowing_warnings) > max_show:
+            remaining = len(shadowing_warnings) - max_show
+            console.print(f"  [dim]• ... and {remaining} more shadowing warnings[/dim]")
     else:
         console.print("  [dim]• No active shadowing detected across active workspace.[/dim]")
 
 
-@cli.group("vendor")
+@cli.group("vendor", cls=PointedGroup)
 def vendor_group() -> None:
     """Manage vendored upstreams with exclude-first discovery."""
     pass
@@ -264,14 +313,15 @@ def vendor_sync_cmd() -> None:
     root = find_workspace_root()
     code, stdout, stderr = run_vendir_sync(root)
     if code != 0:
-        console.print(f"[red]Vendir sync failed (exit code {code}):\n{stderr}[/red]")
-        sys.exit(1)
+        err_msg = stderr.strip() or stdout.strip() or f"Vendir sync exited with code {code}"
+        clean_err = err_msg.splitlines()[0] if err_msg else "Unknown failure"
+        exit_with_pointed_error(clean_err, location="vendir sync", code=1)
     console.print("[green]Vendir sync completed successfully.[/green]")
     if stdout:
         console.print(stdout)
 
 
-@cli.group("harness")
+@cli.group("harness", cls=PointedGroup)
 def harness_group() -> None:
     """Inspect and toggle active target harnesses."""
     pass
@@ -330,7 +380,7 @@ def harness_disable_cmd(name: str) -> None:
     console.print(f"[yellow]Disabled harness {name}[/yellow]")
 
 
-@cli.group("intake")
+@cli.group("intake", cls=PointedGroup)
 def intake_group() -> None:
     """Catch-all intake bridge for external skills."""
     pass
@@ -386,11 +436,15 @@ def adopt_cmd(source_path: str, name: Optional[str]) -> None:
     """Adopt an external skill into local atelier skills/."""
     root = find_workspace_root()
     local_skills_dir = root / "skills"
-    adopted = adopt_skill(Path(source_path), local_skills_dir, target_name=name)
-    console.print(f"[green]Adopted skill to {adopted}[/green]")
+    try:
+        adopted = adopt_skill(Path(source_path), local_skills_dir, target_name=name)
+        console.print(f"[green]Adopted skill to {adopted}[/green]")
+    except (FileNotFoundError, ValueError) as err:
+        exit_with_pointed_error(str(err), location="adopt")
 
 
-@cli.group("bundle")
+
+@cli.group("bundle", cls=PointedGroup)
 def bundle_group() -> None:
     """Manage curated skill bundles."""
     pass
@@ -427,8 +481,7 @@ def bundle_show_cmd(name: str, as_json: bool) -> None:
     bundles = load_bundles(root)
     bundle = bundles.get(name)
     if not bundle:
-        console.print(f"[red]Bundle '{name}' not found.[/red]")
-        sys.exit(1)
+        exit_with_pointed_error(f"Bundle '{name}' not found.", location="bundles/")
 
     if as_json:
         click.echo(json.dumps(bundle.model_dump(mode="json"), indent=2))
@@ -448,8 +501,7 @@ def bundle_switch_cmd(name: str) -> None:
     root = find_workspace_root()
     bundles = load_bundles(root)
     if name not in bundles:
-        console.print(f"[red]Bundle '{name}' does not exist in bundles/[/red]")
-        sys.exit(1)
+        exit_with_pointed_error(f"Bundle '{name}' does not exist in bundles/", location="bundles/")
 
     config_file = root / "ghosla.toml"
     content = config_file.read_text(encoding="utf-8")
@@ -471,12 +523,18 @@ def link_cmd(clean: bool) -> None:
     bundles = load_bundles(root)
     active_bundle = bundles.get(cfg.active_bundle)
     if not active_bundle:
-        console.print(f"[red]Active bundle '{cfg.active_bundle}' not found in bundles/[/red]")
-        sys.exit(1)
+        exit_with_pointed_error(
+            f"Active bundle '{cfg.active_bundle}' not found in bundles/",
+            location="ghosla.toml",
+        )
 
     catalog = get_catalog(root, include_upstream=True)
     engine = LinkerEngine(workspace_root=root)
-    created = engine.link_bundle(active_bundle, catalog, harnesses_config=cfg.harnesses)
+    try:
+        created = engine.link_bundle(active_bundle, catalog, harnesses_config=cfg.harnesses)
+    except KeyError as err:
+        exit_with_pointed_error(str(err).strip("'"), location=f"bundles/{active_bundle.name}.yaml")
+
     console.print(f"[green]Linked {len(created)} skills into enabled harnesses.[/green]")
 
     if clean:
@@ -487,8 +545,9 @@ def link_cmd(clean: bool) -> None:
 
 @cli.command("audit")
 @click.option("--all", "audit_all", is_flag=True, help="Audit both local and vendored skills")
+@click.option("--verbose", "-v", is_flag=True, help="Show full audit details for all skills")
 @click.option("--json", "as_json", is_flag=True)
-def audit_cmd(audit_all: bool, as_json: bool) -> None:
+def audit_cmd(audit_all: bool, verbose: bool, as_json: bool) -> None:
     """Validate frontmatter, token budgets, byte limits, and reference depths."""
     root = find_workspace_root()
     catalog = get_catalog(root, include_upstream=audit_all)
@@ -524,23 +583,61 @@ def audit_cmd(audit_all: bool, as_json: bool) -> None:
             "valid": sum(1 for r in results if r["is_valid"]),
             "failed": sum(1 for r in results if not r["is_valid"]),
         }
-        click.echo(json.dumps({"summary": summary, "skills": results}, indent=2))
+        indent = 2 if verbose else None
+        separators = (",", ": ") if verbose else (",", ":")
+        payload = json.dumps(
+            {"summary": summary, "skills": results},
+            indent=indent,
+            separators=separators,
+        )
+        click.echo(payload)
         sys.exit(3 if has_budget_violation else 0)
 
-    console.print(f"Auditing {len(results)} skills...")
-    for r in results:
-        status_tag = "[green]PASS[/green]" if r["is_valid"] else "[red]FAIL[/red]"
-        console.print(
-            f"[{status_tag}] {r['name']}: {r['byte_size']} bytes | "
-            f"{r['line_count']} lines | ~{r['estimated_tokens']} tokens"
-        )
-        for err in r["errors"]:
-            console.print(f"    [red]• {err}[/red]")
-        for warn in r["warnings"]:
-            console.print(f"    [yellow]• {warn}[/yellow]")
+    failed_skills = [r for r in results if not r["is_valid"]]
+    valid_count = len(results) - len(failed_skills)
+
+    if verbose:
+        console.print(f"Auditing {len(results)} skills...")
+        for r in results:
+            status_tag = "[green]PASS[/green]" if r["is_valid"] else "[red]FAIL[/red]"
+            console.print(
+                f"[{status_tag}] {r['name']}: {r['byte_size']} bytes | "
+                f"{r['line_count']} lines | ~{r['estimated_tokens']} tokens"
+            )
+            for err in r["errors"]:
+                console.print(f"    [red]• {err}[/red]")
+            for warn in r["warnings"]:
+                console.print(f"    [yellow]• {warn}[/yellow]")
+    else:
+        # Terse / Token-Optimized mode: only report failures and clean summary
+        if failed_skills:
+            fail_count = len(failed_skills)
+            total_count = len(results)
+            console.print(f"[bold red]Audit Failures ({fail_count}/{total_count}):[/bold red]")
+            for r in failed_skills:
+                meta_info = f"{r['byte_size']} bytes, ~{r['estimated_tokens']} tokens"
+                console.print(
+                    f"  [red]FAIL[/red] [bold]{r['name']}[/bold] ({meta_info}):"
+                )
+                for err in r["errors"]:
+                    console.print(f"    [red]• {err}[/red]")
+                for warn in r["warnings"]:
+                    console.print(f"    [yellow]• {warn}[/yellow]")
+
+        if not failed_skills:
+            console.print(
+                f"[green]Audit complete: all {len(results)} skills passed "
+                "budget and integrity checks.[/green]"
+            )
+        else:
+            console.print(
+                f"[yellow]Audit finished: {len(results)} checked, {valid_count} passed, "
+                f"[red]{len(failed_skills)} failed[/red]. (Use -v for full list)[/yellow]"
+            )
 
     if has_budget_violation:
         sys.exit(3)
+
 
 
 @cli.command("diff")
@@ -603,7 +700,7 @@ def diff_cmd(as_json: bool, update_state: bool) -> None:
     sys.exit(2)
 
 
-@cli.group("study")
+@cli.group("study", cls=PointedGroup)
 def study_group() -> None:
     """Export skills into Obsidian Luma study lab for incremental reading."""
     pass
@@ -619,8 +716,10 @@ def study_export_cmd(skill_name: str, vault: Optional[str]) -> None:
     engine = LinkerEngine(workspace_root=root)
     skill = engine.resolve_skill(skill_name, catalog) or catalog.get(skill_name)
     if not skill:
-        console.print(f"[red]Skill '{skill_name}' not found in atelier catalog.[/red]")
-        sys.exit(1)
+        exit_with_pointed_error(
+            f"Skill '{skill_name}' not found in atelier catalog.",
+            location="catalog",
+        )
 
     vault_path = Path(vault) if vault else None
     exporter = ObsidianLumaExporter(vault_path=vault_path)

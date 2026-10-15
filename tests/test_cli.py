@@ -123,3 +123,18 @@ def test_cli_link_resolves_unslop_from_upstream(runner: CliRunner) -> None:
     assert res.exit_code == 0
     assert "Linked" in res.output
 
+
+def test_cli_audit_verbose_flag(runner: CliRunner) -> None:
+    res = runner.invoke(cli, ["audit", "-v"])
+    assert res.exit_code in (0, 3)
+    assert "Auditing" in res.output
+
+
+def test_cli_pointed_error_on_unknown_bundle(runner: CliRunner) -> None:
+    res = runner.invoke(cli, ["bundle", "switch", "does-not-exist"])
+    assert res.exit_code == 1
+    assert "Error:" in res.output
+    assert "[bundles/]" in res.output
+    assert "Traceback" not in res.output
+
+

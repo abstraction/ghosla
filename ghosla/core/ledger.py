@@ -63,17 +63,15 @@ class EpistemicLedger:
         if skills_dir and skills_dir.exists():
             from ghosla.core.frontmatter import extract_skill_frontmatter
 
-            for item in sorted(skills_dir.iterdir()):
-                skill_md = item / "SKILL.md"
-                if item.is_dir() and skill_md.exists():
-                    fm, _, _ = extract_skill_frontmatter(skill_md)
-                    if fm and fm.is_fork:
-                        upstream_source = str(fm.upstream_source or "")
-                        local_forks.append({
-                            "name": fm.name,
-                            "path": item,
-                            "upstream_source": upstream_source,
-                        })
+            for skill_md in sorted(skills_dir.rglob("SKILL.md")):
+                fm, _, _ = extract_skill_frontmatter(skill_md)
+                if fm and fm.is_fork:
+                    upstream_source = str(fm.upstream_source or "")
+                    local_forks.append({
+                        "name": fm.name,
+                        "path": skill_md.parent,
+                        "upstream_source": upstream_source,
+                    })
 
         current_state = self.load_state()
         diffs: List[DiffSummary] = []

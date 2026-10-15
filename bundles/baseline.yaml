@@ -3,5 +3,12 @@ description: Core daily drivers pinned for universal workspace execution
 skills:
   - git-commit
   - unslop
+  - adhd-unslop
+  - tdd
+  - safe-unmount
+  - adversarial-plan-critique
+  - skill-maker
+  - agy-expert
+  - abstraction-signature
 target_harnesses:
   - antigravity

@@ -68,3 +68,43 @@ def test_adopt_skill(tmp_path: Path) -> None:
 
     content = (adopted_path / "SKILL.md").read_text(encoding="utf-8")
     assert "name: adopted-tool" in content
+
+
+def test_adopt_skill_copies_sibling_folders(tmp_path: Path) -> None:
+    intake_dir = tmp_path / "agents_skills"
+    intake_dir.mkdir()
+    s1 = intake_dir / "complex-tool"
+    s1.mkdir()
+    (s1 / "SKILL.md").write_text(
+        "---\nname: complex-tool\ndescription: Complex tool\n---\n## Workflow\n1. Run\n",
+        encoding="utf-8",
+    )
+    # Create sibling folders and files
+    scripts_dir = s1 / "scripts"
+    scripts_dir.mkdir()
+    (scripts_dir / "run.sh").write_text("#!/bin/bash\necho ok", encoding="utf-8")
+    refs_dir = s1 / "references"
+    refs_dir.mkdir()
+    (refs_dir / "guide.md").write_text("# Reference Guide", encoding="utf-8")
+
+    local_skills_dir = tmp_path / "ghosla_skills"
+    local_skills_dir.mkdir()
+
+    # Pass the SKILL.md file directly
+    adopted_path = adopt_skill(s1 / "SKILL.md", local_skills_dir)
+    assert adopted_path.exists()
+    assert (adopted_path / "SKILL.md").exists()
+    assert (adopted_path / "scripts" / "run.sh").exists()
+    assert (adopted_path / "references" / "guide.md").exists()
+
+
+def test_adopt_skill_missing_skill_md(tmp_path: Path) -> None:
+    empty_dir = tmp_path / "empty_tool"
+    empty_dir.mkdir()
+    dest = tmp_path / "dest"
+    dest.mkdir()
+
+    import pytest
+    with pytest.raises(FileNotFoundError, match="missing SKILL.md"):
+        adopt_skill(empty_dir, dest)
+

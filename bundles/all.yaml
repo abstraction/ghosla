@@ -1,0 +1,38 @@
+name: all
+description: Comprehensive atelier bundle containing all personal, forked, and adopted skills
+skills:
+  - git-commit
+  - unslop
+  - adhd-unslop
+  - tdd
+  - safe-unmount
+  - adversarial-plan-critique
+  - skill-maker
+  - agy-expert
+  - abstraction-signature
+  - codebase-memory
+  - graphify
+  - python-coding-assistant
+  - lua-coding-assistant
+  - qml-expert
+  - arch-packager
+  - deduplicator
+  - agents-md-maker
+  - find-skills
+  - resume-session
+  - anki-maker
+  - ai-postmortem
+  - doc-digest
+  - socratic-tutor
+  - archive-conversation
+  - library-organizer
+  - koreader-custom-cover
+  - koreader-markdown-ingest
+  - koreader-metadata-sync
+  - agent-browser
+  - computer-use
+  - herdr
+  - orca-cli
+  - orchestration
+target_harnesses:
+  - antigravity
