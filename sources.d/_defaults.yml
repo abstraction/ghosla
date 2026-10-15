@@ -1,0 +1,20 @@
+apiVersion: ghosla.io/v1alpha1
+kind: UpstreamDefaults
+excludePaths:
+  - ".git/**"
+  - ".gitignore"
+  - ".gitattributes"
+  - ".github/**"
+  - ".codex/**"
+  - ".vscode/**"
+  - "node_modules/**"
+  - "dist/**"
+  - "build/**"
+  - "*.tsbuildinfo"
+  - "*.pyc"
+  - "__pycache__/**"
+  - ".pytest_cache/**"
+  - "package-lock.json"
+  - "bun.lockb"
+  - "pnpm-lock.yaml"
+  - "yarn.lock"

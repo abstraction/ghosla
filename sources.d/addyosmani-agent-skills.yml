@@ -1,0 +1,4 @@
+name: addyosmani-agent-skills
+git:
+  url: https://github.com/addyosmani/agent-skills
+  ref: main

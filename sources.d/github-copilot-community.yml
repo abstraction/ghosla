@@ -1,0 +1,5 @@
+name: github-copilot-community
+git:
+  url: https://github.com/github/awesome-copilot
+  ref: main
+newRootPath: skills

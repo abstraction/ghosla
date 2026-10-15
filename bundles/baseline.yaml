@@ -1,0 +1,7 @@
+name: baseline
+description: Core daily drivers pinned for universal workspace execution
+skills:
+  - git-commit
+  - unslop
+target_harnesses:
+  - antigravity

@@ -1,0 +1,7 @@
+name: full-stack
+description: Full-stack engineering and architecture review bundle
+skills:
+  - git-commit
+  - unslop
+target_harnesses:
+  - antigravity

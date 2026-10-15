@@ -1,0 +1,24 @@
+[atelier]
+name = "ghosla"
+active_bundle = "baseline"
+
+[harnesses.antigravity]
+enabled = true
+path = "~/.gemini/config/skills"
+
+[harnesses.agents_global]
+enabled = false
+path = "~/.agents/skills"
+
+[harnesses.claude_code]
+enabled = false
+path = "~/.claude/skills"
+
+[harnesses.codex]
+enabled = false
+path = "~/.codex/skills"
+
+[intake]
+catch_all_path = "~/.agents/skills"
+auto_bridge_to_gemini = true
+bridge_prefix = ""

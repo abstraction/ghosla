@@ -1,0 +1,7 @@
+name: compound-engineering
+git:
+  url: https://github.com/EveryInc/compound-engineering-plugin
+  ref: main
+extraExcludePaths:
+  - "tests/skill-eval-cell/fixtures/**"
+  - "docs/specs/**"

@@ -1,0 +1,4 @@
+name: humanlayer
+git:
+  url: https://github.com/humanlayer/skills
+  ref: main
